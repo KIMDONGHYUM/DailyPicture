@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+    PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+    
+<mapper namespace="com.study.springboot.dao.IDpFollowDao">
+
+	<insert id="follow" parameterType="com.study.springboot.dto.DpFollowDto">
+		
+		merge into dp_follow
+			using dual on (following = #{param1} and follower = #{param2})
+				when not matched then	
+		insert (id, following, follower)
+		 	 values(dp_follow_seq.nextval, #{param1}, #{param2})
+		 
+	</insert>
+		
+	<!-- 언팔로우 -->
+	<delete id="unfollow">
+		delete from dp_follow where following = #{param1} and follower = #{param2}
+	</delete>
+	
+	<!-- 내가 팔로우한 사람들 -->
+	<select id="unfollowlist" resultType="com.study.springboot.dto.DpFollowDto">
+		select * from dp_follow where follower = #{follower} 
+	</select>
+	
+	<!-- 나를 팔로우한 사람들 -->
+	<select id="followerlist" resultType="com.study.springboot.dto.DpFollowDto">
+		select * from dp_follow where following = #{following} 
+	</select>
+	
+	<!-- 사진을 매칭시키기 위해 member테이블, follow테이블 join
+		나를 팔로우한 사람들 사진 매칭을 위한 메서드 -->
+	<select id="fmlist" resultType="com.study.springboot.dto.FollowMemberDto">
+		select dp_member.id, dp_member.name, dp_member.password, dp_member.phone,
+			   dp_member.mail, dp_member.reg, dp_member.picture, dp_follow.following,
+			   dp_follow.follower 
+	    from dp_member, dp_follow 
+	    where dp_member.id = dp_follow.follower and following = #{following}
+	    		
+	</select>
+	
+	<!-- 사진을 매칭시키기 위해 member테이블, follow테이블 join
+		내가 팔로우한 사람들 사진 매칭을 위한 메서드 -->
+	<select id="ufmlist" resultType="com.study.springboot.dto.FollowMemberDto">
+		select dp_member.id, dp_member.name, dp_member.password, dp_member.phone,
+			   dp_member.mail, dp_member.reg, dp_member.picture, dp_follow.following,
+			   dp_follow.follower 
+	    from dp_member, dp_follow 
+	    where dp_member.id = dp_follow.following and follower = #{follower}
+	</select>
+	
+	<!-- 회원탈퇴 시 팔로우목록에서 삭제 -->
+	<delete id="delete">
+		delete from dp_follow where following=#{following} or follower = #{follower}
+	</delete>
+</mapper>
